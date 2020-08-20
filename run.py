@@ -58,8 +58,9 @@ nextWord = random.choice(list(words.keys()))
 
 
 
-def blit_text(surface, text, pos, font, currentUserLocation, color=pygame.Color('black')):
+def blit_text(surface, text, pos, font, wordStatus, color=pygame.Color('black')):
     #https://stackoverflow.com/questions/42014195/rendering-text-with-multiple-lines-in-pygame
+    #wordStatus is a array of the currnet status of the word, waiting [0], wrong[-1], correct [1]
     words = [word.split(' ') for word in text.splitlines()]  # 2D array where each row is a list of words.
     space = font.size(' ')[0]  # The width of a space.
     max_width, max_height = surface.get_size()
@@ -68,8 +69,7 @@ def blit_text(surface, text, pos, font, currentUserLocation, color=pygame.Color(
     for line in words:
         for word in line:
             upto += 1
-            if upto > currentUserLocation:
-                color = pygame.Color('green')
+            color = pygame.Color(['black', 'green', 'red'][wordStatus[upto]])
             word_surface = font.render(word, 0, color)
             word_width, word_height = word_surface.get_size()
             if x + word_width >= max_width:
@@ -84,7 +84,7 @@ longtext = "This is a really long sentence with a couple of breaks.\nSometimes i
        "in the sentence, but that's because the text is too long to fit the screen.\nIt can look strange sometimes.\n" \
        "This function doesn't check if the text is too high to fit on the height of the surface though, so sometimes " \
        "text will disappear underneath the surface"
-
+longtextStatus = [0 for word in longtext.splitlines() for _ in word.split(' ')]
 
 previousWordColour = RED
 
