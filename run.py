@@ -88,7 +88,7 @@ def blit_text(surface, text, pos, font, currentuserlocation, color=pygame.Color(
             x += word_width + space
         x = pos[0]  # Reset the x.
         y += word_height  # Start on new row.
-    if currentWord:
+    if currentword:
         return currentword[0]
     else:
         return False
