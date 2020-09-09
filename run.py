@@ -1,4 +1,7 @@
-import random, time, keyboard, pygame, sys
+import time
+import pygame
+import sys
+import datetime
 from pygame.locals import *
 
 pygame.init()
@@ -51,16 +54,13 @@ dean = {
     'correct': []
 }
 
-longtext = "This is a a break " \
-       "in the screen.\nIt can look strange sometimes.\n" \
-       "e surface though, so sometimes " \
-       "text urface"
-
+longtext = "This is a a break "
 n = 0
 text = ''
 previousUserWords = ['']
 wordSelect = longtext.split(' ')[0]
 
+userkeyboard = 'logitech g810'
 
 
 
@@ -91,7 +91,7 @@ def blit_text(surface, text, pos, font, currentuserlocation, color=pygame.Color(
     if currentword:
         return currentword[0]
     else:
-        return False
+        return ''
 
 
 
@@ -101,31 +101,53 @@ def blit_text(surface, text, pos, font, currentuserlocation, color=pygame.Color(
 
 
 currentUserLocation = 0
-start = time.process_time()
+logger = ''
+
+filename = 'data/spellingQuiz-'+ datetime.datetime.now().strftime("%Y-%m-%d@%H#%M#%S") + '.txt'
+startgame = False
 
 while True:  # making a loop
 
+    while startgame:
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                    start = datetime.datetime.now()
+                    startgame = True
+                    yield startgame
+
+
+
     for event in pygame.event.get():
+
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
         elif event.type == pygame.KEYDOWN:
 
+
             if event.key in (pygame.K_RETURN, pygame.K_SPACE):
 
 
                 if text == currentWord:
+                    with open(filename, 'a') as text_file:
+                        text_file.write(f'{logger}\n')
                     currentUserLocation += 1
                     text = ''
+                    logger = ''
 
 
             elif event.key ==  pygame.K_BACKSPACE:
                 if len(text)>0:
+                    logger += f'[{datetime.datetime.now()-start},h DELETE]\t'
                     text = text[0:-1]
 
             else:
+                logger += f'[{datetime.datetime.now()-start}, {event.unicode}]\t'
                 text += event.unicode
-
 
 
     DISPLAYSURF.fill((WHITE))
@@ -134,13 +156,15 @@ while True:  # making a loop
     txt_spell_word = font.render(currentWord,True,color)
 
 
-
-
     DISPLAYSURF.blit(txt_current,(DisplayWidth//2,5*DisplayHeight//6))
-
     DISPLAYSURF.blit(txt_spell_word, (DisplayWidth // 2, 2*DisplayHeight // 3))
-
 
     pygame.display.flip()
     FramePerSec.tick(FPS)
+
+    if currentWord == '':
+        print(f'total time: {datetime.datetime.now()-start}')
+        pygame.quit()
+        sys.exit()
+
 
