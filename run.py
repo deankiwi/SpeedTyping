@@ -1,5 +1,6 @@
-import time
 import pygame
+import numpy as np
+import cv2
 import sys
 import datetime
 from pygame.locals import *
@@ -8,6 +9,8 @@ pygame.init()
 
 FPS = 60
 FramePerSec = pygame.time.Clock()
+cap = cv2.VideoCapture(0)
+
 
 WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
@@ -25,36 +28,9 @@ DISPLAYSURF = pygame.display.set_mode((DisplayWidth, DisplayHeight), pygame.RESI
 DISPLAYSURF.fill(WHITE)
 pygame.display.set_caption('Spelling Game')
 
-words = {
-    'Consistent': 'description',
-    'Hyphen': 'description',
-    'Architect': 'description',
-    'Satisfy': 'description',
-    'verify': 'description',
-    'Cinnamon': 'description',
-    'Atrium': 'description',
-    'vehicle': 'description',
-    'beginning': 'description',
-    'connoisseur': 'description',
-    'requirements': 'description',
-    'Finalized': 'description',
-    'license': 'description',
-    'innovative ': 'description',
-    'opinion': 'description',
-    'variety': 'description',
-    'padawan': 'description',
-    'inconvenience': 'description',
-    'apologize': 'description',
-    'fabulous': 'description',
-    'necessary': 'description',
-    'claims': 'description'
-}
 
-dean = {
-    'correct': []
-}
-
-longtext = "This is a a break "
+#longtext = "a1a2aqaza s3swsxs d4dedcd f5frfvf6ftfgfbf j7jyjhjnjujm k8kik,k l9lol.l ;0;p;/;-;[;';];="
+longtext = 'test '
 n = 0
 text = ''
 previousUserWords = ['']
@@ -104,21 +80,21 @@ currentUserLocation = 0
 logger = ''
 
 filename = 'data/spellingQuiz-'+ datetime.datetime.now().strftime("%Y-%m-%d@%H#%M#%S") + '.txt'
-startgame = False
+startgame = True
+
+while startgame:
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            pygame.quit()
+            sys.exit()
+        elif event.type == pygame.KEYDOWN:
+            if event.key in (pygame.K_RETURN, pygame.K_SPACE):
+
+                startgame = False
+
+start = datetime.datetime.now()
 
 while True:  # making a loop
-
-    while startgame:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == pygame.KEYDOWN:
-                if event.key in (pygame.K_RETURN, pygame.K_SPACE):
-                    start = datetime.datetime.now()
-                    startgame = True
-                    yield startgame
-
 
 
     for event in pygame.event.get():
@@ -146,6 +122,10 @@ while True:  # making a loop
                     text = text[0:-1]
 
             else:
+                ret, frame = cap.read()
+                if ret == True:
+                    img_name = f"opencv_frame_{datetime.utcnow().strftime('%Y-%m-%d%H_%M_%S_%f')}.png"
+                    cv2.imwrite(img_name, frame)
                 logger += f'[{datetime.datetime.now()-start}, {event.unicode}]\t'
                 text += event.unicode
 
@@ -168,3 +148,6 @@ while True:  # making a loop
         sys.exit()
 
 
+cap.release()
+out.release()
+cv2.destroyAllWindows()
