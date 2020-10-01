@@ -1,15 +1,19 @@
 import pygame
 import numpy as np
+import time
 import cv2
 import sys
 import datetime
 from pygame.locals import *
+import os
 
 pygame.init()
 
-FPS = 60
+FPS = 120
 FramePerSec = pygame.time.Clock()
-cap = cv2.VideoCapture(0)
+cap0 = cv2.VideoCapture(0)
+#cap1 = cv2.VideoCapture(1)
+path = '/data/run'
 
 
 WHITE = (255, 255, 255)
@@ -30,11 +34,12 @@ pygame.display.set_caption('Spelling Game')
 
 
 #longtext = "a1a2aqaza s3swsxs d4dedcd f5frfvf6ftfgfbf j7jyjhjnjujm k8kik,k l9lol.l ;0;p;/;-;[;';];="
-longtext = 'test '
+longtext = 'this is me testing out camera side by side'
 n = 0
 text = ''
 previousUserWords = ['']
 wordSelect = longtext.split(' ')[0]
+lastimages = []
 
 userkeyboard = 'logitech g810'
 
@@ -95,6 +100,8 @@ while startgame:
 start = datetime.datetime.now()
 
 while True:  # making a loop
+    ret, frame = cap0.read()
+    #ret, frame = cap1.read()
 
 
     for event in pygame.event.get():
@@ -122,10 +129,16 @@ while True:  # making a loop
                     text = text[0:-1]
 
             else:
-                ret, frame = cap.read()
-                if ret == True:
-                    img_name = f"opencv_frame_{datetime.utcnow().strftime('%Y-%m-%d%H_%M_%S_%f')}.png"
-                    cv2.imwrite(img_name, frame)
+                ret0, frame0 = cap0.read()
+                #ret1, frame1 = cap1.read()
+                if ret0 == True:
+                    img_name = f"data/{int(round(time.time() * 1000))}{event.unicode}"
+                    img_name0 = img_name +'a.png'
+                    #img_name1 = img_name + 'b.png'
+                    cv2.imwrite(img_name0, frame0)
+                    #scv2.imwrite(img_name1, frame1)
+
+
                 logger += f'[{datetime.datetime.now()-start}, {event.unicode}]\t'
                 text += event.unicode
 
@@ -148,6 +161,6 @@ while True:  # making a loop
         sys.exit()
 
 
-cap.release()
+cap0.release()
 out.release()
 cv2.destroyAllWindows()
