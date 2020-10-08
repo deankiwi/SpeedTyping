@@ -13,7 +13,7 @@ import pathlib
 
 pygame.init()
 
-FPS = 120
+FPS = 30
 FramePerSec = pygame.time.Clock()
 cap0 = cv2.VideoCapture(0)
 #cap1 = cv2.VideoCapture(1)
@@ -45,19 +45,23 @@ DISPLAYSURF = pygame.display.set_mode((DisplayWidth, DisplayHeight), pygame.RESI
 DISPLAYSURF.fill(WHITE)
 pygame.display.set_caption('Spelling Game')
 
+def reddit_scrapper(reddit):
+    subreddit = reddit.subreddit('python')
+    reddittitles = []
+    hot_python = subreddit.hot()
+    for submission in hot_python:
+        if not submission.stickied:
+            removeNonString = ''.join([i if ord(i) < 128 else ' ' for i in submission.title])
+            reddittitles.append(removeNonString)
+    return  reddittitles
 
-subreddit = reddit.subreddit('python')
-reddittitles = []
-hot_python = subreddit.hot()
-for submission in hot_python:
-    if not submission.stickied:
-        removeNonString = ''.join([i if ord(i) < 128 else ' ' for i in submission.title])
-        reddittitles.append(removeNonString)
-longtext = random.choice(reddittitles)
+
+
+longtext = random.choice(reddit_scrapper(reddit))
 
 
 
-def fresh_game():
+def fresh_game(completedTests, reddit):
     #set all variable back to normal
     newpath = str(pathlib.Path(__file__).parent.absolute()) + r'\data\typingtest'
     i = 0
@@ -67,6 +71,7 @@ def fresh_game():
     os.makedirs(newpath)
     currentUserLocation = 0
     logger = ''
+    longtext = reddit_scrapper(reddit)
     jsonData = {
         'text': longtext,
         'datetime': datetime.datetime.now(),
@@ -76,7 +81,7 @@ def fresh_game():
     text = ''
     typeDataWord = []
     filename = newpath + '/spellingQuiz-' + datetime.datetime.now().strftime("%Y-%m-%d@%H#%M#%S") + '.txt'
-    longtext = random.choice(reddittitles)
+    longtext = random.choice(reddit_scrapper(reddit))
     freshgame = {
         'newpath' : newpath,
         'currentUserLocation': currentUserLocation,
@@ -91,6 +96,9 @@ def fresh_game():
     }
     return freshgame
 
+class gameClass():
+    #class to hold all of the game data and allow you to refresh the game
+    pass
 
 
 
@@ -156,7 +164,7 @@ while startgame:
 start = datetime.datetime.now()
 text = ''
 
-refreshgame = fresh_game()
+refreshgame = fresh_game(completedTests, reddit)
 
 
 
@@ -174,13 +182,14 @@ while True:  # making a loop
 
 
             if event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                print(text , currentWord)
 
 
                 if text == currentWord:
                     with open(filename, 'a') as text_file:
                         text_file.write(f'{logger}\n')
                     jsonData['typeData'].append(typeDataWord)
-                    currentUserLocation += 1
+                    refreshgame['currentUserLocation'] += 1
                     text = ''
                     logger = ''
                     typeDataWord = []
@@ -188,6 +197,7 @@ while True:  # making a loop
 
             elif event.key ==  pygame.K_BACKSPACE:
                 if len(text)>0:
+                    start = refreshgame['start']
                     logger += f'[{datetime.datetime.now()-start},DELETE]\t'
                     typeDataWord.append([datetime.datetime.now() - start, 'DELETE'])
                     text = text[0:-1]
@@ -196,6 +206,7 @@ while True:  # making a loop
                 ret0, frame0 = cap0.read()
                 #ret1, frame1 = cap1.read()
                 if ret0 == True:
+                    newpath = refreshgame['newpath']
                     img_name = f"{newpath}/{int(round(time.time() * 1000))}{event.unicode}"
                     img_name0 = img_name +'.png'
                     #img_name1 = img_name + 'b.png'
@@ -209,7 +220,7 @@ while True:  # making a loop
 
 
     DISPLAYSURF.fill((WHITE))
-    currentWord = blit_text(DISPLAYSURF, longtext, (20,20),font,currentUserLocation)
+    currentWord = blit_text(DISPLAYSURF, refreshgame['longtext'], (20,20),font,refreshgame['currentUserLocation'])
     txt_current = font.render(text, True, color)
     txt_spell_word = font.render(currentWord,True,color)
 
@@ -223,15 +234,18 @@ while True:  # making a loop
     if currentWord == '':
         print(f'total time: {datetime.datetime.now()-start}')
         with open(newpath+r'\dataSet' +  '.json','w+', encoding='utf-8' ) as f:
-            print(jsonData)
+            jsonData['text'] = refreshgame['longtext']
+            jsonData['datetime'] = datetime.datetime.now()
             json.dump(jsonData, f, ensure_ascii=False, indent=4 , default=str)
-        pygame.quit()
-        sys.exit()
+            jsonData['typeData'] = []
+        refreshgame = fresh_game(completedTests, reddit)
 
 
 
 
 
+pygame.quit()
+sys.exit()
 cap0.release()
 out.release()
 cv2.destroyAllWindows()
