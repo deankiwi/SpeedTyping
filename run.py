@@ -57,11 +57,11 @@ def reddit_scrapper(reddit):
 
 
 
-longtext = random.choice(reddit_scrapper(reddit))
+allRedditTexts = reddit_scrapper(reddit)
 
 
 
-def fresh_game(completedTests, reddit):
+def fresh_game(completedTests, reddit, allRedditTexts):
     #set all variable back to normal
     newpath = str(pathlib.Path(__file__).parent.absolute()) + r'\data\typingtest'
     i = 0
@@ -71,7 +71,7 @@ def fresh_game(completedTests, reddit):
     os.makedirs(newpath)
     currentUserLocation = 0
     logger = ''
-    longtext = reddit_scrapper(reddit)
+    longtext = random.choice(allRedditTexts)
     jsonData = {
         'text': longtext,
         'datetime': datetime.datetime.now(),
@@ -81,7 +81,7 @@ def fresh_game(completedTests, reddit):
     text = ''
     typeDataWord = []
     filename = newpath + '/spellingQuiz-' + datetime.datetime.now().strftime("%Y-%m-%d@%H#%M#%S") + '.txt'
-    longtext = random.choice(reddit_scrapper(reddit))
+
     freshgame = {
         'newpath' : newpath,
         'currentUserLocation': currentUserLocation,
@@ -133,40 +133,75 @@ def blit_text(surface, text, pos, font, currentuserlocation, color=pygame.Color(
 
 
 
-
-
-
-
-
 currentUserLocation = 0
 logger = ''
-jsonData = {
-    'text' : longtext,
-    'datetime' : datetime.datetime.now(),
-    'typeData' : []
-}
+
 
 typeDataWord = []
 
 filename = newpath + '/spellingQuiz-'+ datetime.datetime.now().strftime("%Y-%m-%d@%H#%M#%S") + '.txt'
 startgame = True
 
+rectangle = [[50, 50], [200, 200]]
+
 while startgame:
+    ret, frame = cap0.read()
+    cv2.rectangle(frame, (rectangle[0][0], rectangle[0][1]), (rectangle[1][0], rectangle[1][1]), (255, 0, 0), 4)
+    cv2.imshow('setup', frame)
     for event in pygame.event.get():
         if event.type == QUIT:
             pygame.quit()
             sys.exit()
-        elif event.type == pygame.KEYDOWN:
+            
+        if event.type == pygame.KEYDOWN:
             if event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                cv2.destroyAllWindows()
 
                 startgame = False
+            if event.key == pygame.K_w:
+                #move box up
+                rectangle[0][1] -= 10
+                rectangle[1][1] -= 10
+            if event.key == pygame.K_s:
+                # move box down
+                rectangle[0][1] += 10
+                rectangle[1][1] += 10
+            if event.key == pygame.K_a:
+                # move box left
+                rectangle[0][0] -= 10
+                rectangle[1][0] -= 10
+            if event.key == pygame.K_d:
+                # move box right
+                rectangle[0][0] += 10
+                rectangle[1][0] += 10
+            if event.key == pygame.K_q:
+                # make box taller
+                rectangle[0][0] -= 10
+            if event.key == pygame.K_z:
+                # make box shorter
+                rectangle[0][0] += 10
+            if event.key == pygame.K_e:
+                # make box wider
+                rectangle[1][1] -= 10
+            if event.key == pygame.K_c:
+                # make box thinner
+                rectangle[1][1] += 10
+
+
+
+
 
 start = datetime.datetime.now()
 text = ''
 
-refreshgame = fresh_game(completedTests, reddit)
+refreshgame = fresh_game(completedTests, reddit, allRedditTexts)
 
-
+jsonData = {
+    'text' : refreshgame['longtext'],
+    'datetime' : datetime.datetime.now(),
+    'keyboard_location' : rectangle,
+    'typeData' : []
+}
 
 while True:  # making a loop
     ret, frame = cap0.read()
@@ -186,8 +221,6 @@ while True:  # making a loop
 
 
                 if text == currentWord:
-                    with open(filename, 'a') as text_file:
-                        text_file.write(f'{logger}\n')
                     jsonData['typeData'].append(typeDataWord)
                     refreshgame['currentUserLocation'] += 1
                     text = ''
@@ -238,7 +271,7 @@ while True:  # making a loop
             jsonData['datetime'] = datetime.datetime.now()
             json.dump(jsonData, f, ensure_ascii=False, indent=4 , default=str)
             jsonData['typeData'] = []
-        refreshgame = fresh_game(completedTests, reddit)
+        refreshgame = fresh_game(completedTests, reddit, allRedditTexts)
 
 
 
