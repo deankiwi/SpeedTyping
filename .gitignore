@@ -1,2 +1,4 @@
-.data
-apilogin.py
+spellingquiz/data/
+spellingquiz/apilogin.py
+.idea
+__pycache__
